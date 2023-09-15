@@ -1,74 +1,150 @@
-const productList = [
-    {id:1, nombre:"Iphone X", precio:500, stock:10},
-    {id:2, nombre:"Iphone 11", precio:550, stock:10},
-    {id:3, nombre:"Iphone 12", precio:600, stock:10},
-    {id:4, nombre:"Iphone 13", precio:750, stock:10},
-    {id:5, nombre:"Iphone 14", precio:850, stock:10},
-]
+const shopContent = document.getElementById("shopContent");
+const verCarrito = document.getElementById("verCarrito");
+const cartContainer = document.getElementById("cartContainer");
 
-productList.forEach((item) => {
-    let div = document.createElement("div");
-    div.innerHTML = `
-    <h2>${item.nombre}</h2>
-    <p>Precio ${item.precio}<p>
-    <button id="boton${item.id}">Agregar</button>
-    <br/>`;
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-    document.body.append(div);
+const getProducts = async () => {
+    const response = await fetch("data.json");
+    const data = await response.json();
     
-    let button = document.getElementById(`boton${item.id}`)
-    button.addEventListener("click", () => add(item.id))
-});
-
-let divCart = document.createElement("div");
-    divCart.innerHTML = `<h1>Carrito:</h1>`;
-    document.body.append(divCart);
-
-let divDelete = document.createElement("div");
-    divDelete.innerHTML = `<button>Eliminar carrito</button>`;
-    document.body.append(divDelete)
-
-    divDelete.addEventListener("click", () => {
-        localStorage.clear();
-        location.reload()
+    data.forEach((item) => {
+        let content = document.createElement("div");
+        content.className = "card"
+        content.innerHTML = `
+        <img src="${item.img}">
+        <h2>${item.nombre}</h2>
+        <p class="price">Precio: ${item.precio}$<p>`;
+    
+        shopContent.append(content);
+        
+        let button = document.createElement("button");
+        button.innerText = "Agregar"
+        button.className = "buyButton"
+    
+        content.append(button)
+    
+        button.addEventListener("click", () => {
+            const repeated = cart.some((repeatedProduct) => repeatedProduct.id === item.id)
+            if(repeated){
+                cart.map((prod) => {
+                    if(prod.id === item.id){
+                        prod.cantidad++
+                    };
+                });
+            }else{
+                cart.push({
+                    id: item.id,
+                    img: item.img,
+                    nombre: item.nombre,
+                    precio: item.precio,
+                    cantidad: item.cantidad
+                });
+                console.log(cart);
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top',
+                    iconColor: 'white',
+                    customClass: {
+                      popup: 'colored-toast'
+                    },
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true
+                  })
+                  Toast.fire({
+                    icon: 'success',
+                    title: 'New prodcut added'
+                  });
+                saveLocal();
+            };
+        });
     });
-
-const saveLocal = (key, item) => {
-    localStorage.setItem(key, JSON.stringify(item));
 };
 
-let cart = []
+getProducts();
 
-let cartStorage = JSON.parse(localStorage.getItem("cart"))
+const saveLocal = () => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+};
 
-if(cartStorage){
-    cart = cartStorage
+const printCart = () => {
+        cartContainer.innerHTML = "";
+        cartContainer.style.display = "flex";
+        const cartHeader = document.createElement("div");
+        cartHeader.className = "cartHeader"
+        cartHeader.innerHTML = `
+        <h1 class="cartHeaderTitle">Cart<h1>
+        `;
+    
+        cartContainer.append(cartHeader);
+    
+        const cartButton = document.createElement("h1");
+        cartButton.innerText = "x";
+        cartButton.className = "cartHeaderButton";
+    
+        cartButton.addEventListener("click", () => {
+            cartContainer.style.display = "none"
+        });
+    
+        cartHeader.append(cartButton);
+    
+        cart.forEach((item) => {
+            let cartContent = document.createElement("div");
+            cartContent.className = "cartContent";
+            cartContent.innerHTML = `
+            <img src="${item.img}">
+            <h2>${item.nombre}</h2>
+            <p>Precio: ${item.precio}$</p>
+            <span class="subtract"> - </span>
+            <p>Cantidad ${item.cantidad}</p>
+            <span class="add"> + </span>
+            <span class="delete-product"> X </span>`;
+    
+            cartContainer.append(cartContent);
+            
+            let subtract = cartContent.querySelector(".subtract");
 
-    cart.forEach((item) => {
-       let div = document.createElement("div");
-       div.innerHTML = `
-       <h2>${item.nombre}</h2>
-       <p>Precio ${item.precio}<p>
-       <br/>`;
-   
-       document.body.append(div);
-   });
-   }else{
-       let div = document.createElement("div");
-       div.innerHTML = `<h2>No hay productos en el carrito</h2>`;
-       document.body.append(div);
-   }
+            subtract.addEventListener("click", () => {
+                if(item.cantidad > 1){
+                    item.cantidad--;
+                }
+                saveLocal();
+                printCart();
+            });
+            
+            let add = cartContent.querySelector(".add");
 
-const add = (id) => {
-    let product = productList.find((item) => item.id === id);
-    cart.push(product);
-    saveLocal("cart", cart)
-    location.reload()
-    let div = document.createElement("div");
-       div.innerHTML = `
-       <h2>${product.nombre}</h2>
-       <p>Precio ${product.precio}<p>
-       <br/>`;
-   
-       document.body.append(div);
+            add.addEventListener("click", () => {
+                item.cantidad++;
+                saveLocal();
+                printCart();
+            });
+
+            let remove = cartContent.querySelector(".delete-product");
+
+            remove.addEventListener("click", () => {
+                removeProduct(item.id);
+            });
+        });
+        
+        const total = cart.reduce((acc, el) => acc + el.precio * el.cantidad, 0);
+    
+        const totalBuy = document.createElement("div")
+        totalBuy.className = "totalContent"
+        totalBuy.innerHTML = `Total a pagar: ${total}$`;
+    
+        cartContainer.append(totalBuy);
+};
+
+verCarrito.addEventListener("click", printCart);
+
+const removeProduct = (id) => {
+    const foundId = cart.find((el) => el.id === id);
+    
+    cart = cart.filter((cartId) => {
+        return cartId !== foundId
+    });
+    saveLocal();
+    printCart();
 };

@@ -1,0 +1,7 @@
+[
+    {"id":1, "nombre":"Iphone X", "precio":500, "img":"https://www.tradeinn.com/f/13759/137594118/apple-iphone-x-256gb-5.8-reacondicionado.jpg", "cantidad":1},
+    {"id":2, "nombre":"Iphone 11", "precio":550, "img":"https://www.tradeinn.com/f/13735/137354156/apple-iphone-11-128gb-6.1.jpg", "cantidad":1},
+    {"id":3, "nombre":"Iphone 12", "precio":600, "img":"https://www.tradeinn.com/f/13782/137821875/apple-iphone-12-128gb-6.1.jpg", "cantidad":1},
+    {"id":4, "nombre":"Iphone 13", "precio":750, "img":"https://www.tradeinn.com/f/13885/138855052/apple-iphone-13-128gb-6.1.jpg", "cantidad":1},
+    {"id":5, "nombre":"Iphone 14", "precio":850, "img":"https://www.tradeinn.com/f/13933/139331609/apple-iphone-14-256gb-6.1.jpg", "cantidad":1}
+]
